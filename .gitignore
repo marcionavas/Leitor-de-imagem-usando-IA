@@ -1,0 +1,48 @@
+# Node.js
+node_modules/             # Diretório de dependências
+npm-debug.log             # Log de depuração do npm
+yarn-debug.log            # Log de depuração do Yarn
+yarn-error.log            # Log de erro do Yarn
+package-lock.json         # Arquivo de bloqueio do npm
+yarn.lock                 # Arquivo de bloqueio do Yarn
+
+# Logs
+logs/
+*.log
+
+# Ambiente de desenvolvimento
+.env                      # Arquivo de variáveis de ambiente
+.env.*.local              # Arquivos de variáveis de ambiente localizados
+
+# Diretórios de build e output
+dist/
+build/
+
+# Arquivos temporários
+*.pid
+*.seed
+*.pid.lock
+
+# Sistema operacional
+.DS_Store                 # Arquivo do macOS para armazenar informações sobre pastas
+Thumbs.db                 # Arquivo do Windows para armazenar informações sobre pastas
+
+# IDEs e editores
+.vscode/                  # Configurações do Visual Studio Code
+.idea/                    # Configurações do IntelliJ IDEA
+*.swp                     # Arquivos de swap de editores de texto
+*.swo
+
+# Dependências de ferramentas de teste
+coverage/
+
+# Arquivos relacionados a certificações e chaves
+*.pem
+*.key
+*.crt
+*.p12
+*.csr
+
+# Arquivos e pastas temporários
+*.tmp
+*.temp

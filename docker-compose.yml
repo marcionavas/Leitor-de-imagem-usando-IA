@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  postgresdb:
+    image: postgres
+    restart: unless-stopped
+    env_file: ./.env
+    environment:
+      - POSTGRES_USER=$POSTGRESDB_USER
+      - POSTGRES_PASSWORD=$POSTGRESDB_ROOT_PASSWORD
+      - POSTGRES_DB=$POSTGRESDB_DATABASE
+    ports:
+      - $POSTGRESDB_LOCAL_PORT:$POSTGRESDB_DOCKER_PORT
+    volumes:
+      - db:/var/lib/postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -p $POSTGRESDB_DOCKER_PORT -U $POSTGRESDB_USER"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+  app:
+    depends_on:
+      postgresdb:
+        condition: service_healthy
+    build: ./bezkoder-app
+    restart: unless-stopped
+    env_file: ./.env
+    ports:
+      - $NODE_LOCAL_PORT:$NODE_DOCKER_PORT
+    environment:
+      - DB_HOST=postgresdb
+      - DB_USER=$POSTGRESDB_USER
+      - DB_PASSWORD=$POSTGRESDB_ROOT_PASSWORD
+      - DB_NAME=$POSTGRESDB_DATABASE
+      - DB_PORT=$POSTGRESDB_DOCKER_PORT
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./bezkoder-app:/bezkoder-app  # Mapear o diretório corretamente
+
+volumes: 
+  db:
