@@ -1,18 +1,18 @@
 # Node.js
-node_modules/             # Diretório de dependências
-npm-debug.log             # Log de depuração do npm
-yarn-debug.log            # Log de depuração do Yarn
-yarn-error.log            # Log de erro do Yarn
-package-lock.json         # Arquivo de bloqueio do npm
-yarn.lock                 # Arquivo de bloqueio do Yarn
+node_modules/             
+npm-debug.log            
+yarn-debug.log            
+yarn-error.log            
+package-lock.json         
+yarn.lock                
 
 # Logs
 logs/
 *.log
 
 # Ambiente de desenvolvimento
-.env                      # Arquivo de variáveis de ambiente
-.env.*.local              # Arquivos de variáveis de ambiente localizados
+.env                      
+.env.*.local              
 
 # Diretórios de build e output
 dist/
