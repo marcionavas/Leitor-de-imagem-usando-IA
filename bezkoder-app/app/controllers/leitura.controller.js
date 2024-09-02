@@ -9,9 +9,7 @@ globalThis.Headers = Headers; //Header global no projeto para utilizar a api do 
 
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const db = require("../models");
-//const { INTEGER } = require("sequelize");
 const Leitura = db.leitura;
-//const Op = db.Sequelize.Op;
 const { Op } = db.Sequelize;
 
 exports.create = async (req, res) => {
@@ -45,7 +43,7 @@ exports.create = async (req, res) => {
 
     // Verifica se algum registro foi encontrado
     if (result) {
-      res.status(409).send({
+      return res.status(409).send({
         error_code: "DOUBLE_REPORT",
         error_description: "Leitura do mês já realizada"
         });
@@ -55,9 +53,7 @@ exports.create = async (req, res) => {
     res.status(500).send({
       message: err.message || "Some error occurred while processing the request."
     });
-  }
-
-  
+  }  
 
   try {
     // Configuração do modelo
@@ -127,15 +123,46 @@ exports.create = async (req, res) => {
   }
 };
 
+exports.patch = async (req, res) => {
+  // Verifica se todas as informações necessárias estão presentes
+  if (!req.body.measure_uuid || !req.body.confirmed_value) {
+    return res.status(400).send({
+      error_code: "INVALID_DATA",
+      error_description: "Os dados fornecidos no corpo da requisição são inválidos"
+    });
+  }
 
+  try {
+    // Consulta o registro
+    const result = await Leitura.findOne({
+      where: {
+        id: req.body.measure_uuid
+      }
+    });
 
-exports.get = async (req, res) => {
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-  const prompt = "Write a story about a magic backpack.";
+    // Verifica se o registro foi encontrado
+    if (!result) {
+      return res.status(404).send({
+        error_code: "MEASURE_NOT_FOUND",
+        error_description: "Leitura não encontrada"
+      });
+    }
 
-  const result = await model.generateContent(prompt);
-  console.log(result.response.text());
+    // Atualiza o campo se o valor for diferente
+    if (result.leitura !== req.body.confirmed_value) {
+      await result.update({ leitura: req.body.confirmed_value });
+    }
+
+    return res.status(200).send({
+      success: true
+    });
+
+  } catch (err) {
+    console.error("Error occurred:", err.message);
+    return res.status(500).send({
+      message: err.message || "Some error occurred while processing the request."
+    });
+  }
 }
 
 

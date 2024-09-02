@@ -6,7 +6,10 @@ module.exports = app => {
     // Create a new Reading
     router.post("/", leitura.create);
 
-    router.get("/test", leitura.get);
+    //Confirm a reading
+    router.patch("/", leitura.patch);
+
+    //router.get("/test", leitura.get);
   
    
   
