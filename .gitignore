@@ -24,13 +24,13 @@ build/
 *.pid.lock
 
 # Sistema operacional
-.DS_Store                 # Arquivo do macOS para armazenar informações sobre pastas
-Thumbs.db                 # Arquivo do Windows para armazenar informações sobre pastas
+.DS_Store                 
+Thumbs.db                 
 
 # IDEs e editores
-.vscode/                  # Configurações do Visual Studio Code
-.idea/                    # Configurações do IntelliJ IDEA
-*.swp                     # Arquivos de swap de editores de texto
+.vscode/                 
+.idea/                    
+*.swp                   
 *.swo
 
 # Dependências de ferramentas de teste
@@ -46,3 +46,8 @@ coverage/
 # Arquivos e pastas temporários
 *.tmp
 *.temp
+
+#Arquivos de imagens
+*.jpeg
+*.jpeg
+*.png

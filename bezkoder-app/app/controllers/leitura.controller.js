@@ -25,11 +25,12 @@ exports.create = async (req, res) => {
 
   //Verfiicar se já existe algum registro do mesmo tipo no mês vigente
   try {
-    
+    // Obtém o mês e o ano atuais
     const now = new Date();
     const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth() + 1; 
-        
+    const currentMonth = now.getMonth() + 1; // getMonth() retorna o mês de 0 (Janeiro) a 11 (Dezembro)
+
+    // Consulta o banco de dados para verificar se há registros no mês atual
     const result = await Leitura.findOne({
       where: {
         measure_date: {
@@ -37,20 +38,19 @@ exports.create = async (req, res) => {
             new Date(currentYear, currentMonth - 1, 1), // Primeiro dia do mês atual
             new Date(currentYear, currentMonth, 0) // Último dia do mês atual
           ]
-        }
+        },
+        measure_type: req.body.measure_type
       }
     });
-    
+
+    // Verifica se algum registro foi encontrado
     if (result) {
-      console.log(result);
-      return res.status(400).send({
+      res.status(409).send({
         error_code: "DOUBLE_REPORT",
         error_description: "Leitura do mês já realizada"
         });
-    }else {
-      console.log(now+ "OLAAAA");
-    }
-  } catch (err) {
+    } 
+  }catch (err) {
     console.error("Error occurred:", err.message);
     res.status(500).send({
       message: err.message || "Some error occurred while processing the request."
