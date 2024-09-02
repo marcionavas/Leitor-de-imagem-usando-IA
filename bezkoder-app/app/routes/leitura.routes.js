@@ -5,6 +5,8 @@ module.exports = app => {
   
     // Create a new Reading
     router.post("/", leitura.create);
+
+    router.get("/test", leitura.get);
   
    
   

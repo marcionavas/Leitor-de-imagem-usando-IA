@@ -1,77 +1,145 @@
+const fetch = require('node-fetch');
+const { Headers } = require('node-fetch');
+const fs = require('fs');
+const path = require('path');
+const baseImagePath = '/bezkoder-app/app/uploads';
+const baseImageUrl = 'http://localhost:' + process.env.NODE_LOCAL_PORT + '/uploads' 
+globalThis.fetch = fetch;
+globalThis.Headers = Headers; //Header global no projeto para utilizar a api do gemini
+
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 const db = require("../models");
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+//const { INTEGER } = require("sequelize");
 const Leitura = db.leitura;
-const Op = db.Sequelize.Op;
+//const Op = db.Sequelize.Op;
+const { Op } = db.Sequelize;
 
-const axios = require('axios'); 
-
-const geminiApiKey = process.env.GEMINI_API_KEY; 
-const googleAI = new GoogleGenerativeAI(geminiApiKey);
-const geminiConfig = {
-  temperature: 0.4,
-  topP: 1,
-  topK: 32,
-  maxOutputTokens: 4096,
-};
-
-const geminiModel = googleAI.getGenerativeModel({
-  model: "gemini-pro-vision",
-  geminiConfig,
-});
-
-// Create and Save a new Reading
 exports.create = async (req, res) => {
-  if (!req.body.img || !req.body.user_code || !req.body.measure_date || !req.body.measure_type) {
+  // Verifica se todas as informações necessárias estão presentes
+  if (!req.body.image || !req.body.user_code || !req.body.measure_date || !req.body.measure_type) {
     return res.status(400).send({
-      message: "Content can not be empty!"
+      error_code: "INVALID_DATA",
+      error_description: "Os dados fornecidos no corpo da requisição são inválidos"
+      });
+  }
+
+  //Verfiicar se já existe algum registro do mesmo tipo no mês vigente
+  try {
+    
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1; 
+        
+    const result = await Leitura.findOne({
+      where: {
+        measure_date: {
+          [Op.between]: [
+            new Date(currentYear, currentMonth - 1, 1), // Primeiro dia do mês atual
+            new Date(currentYear, currentMonth, 0) // Último dia do mês atual
+          ]
+        }
+      }
+    });
+    
+    if (result) {
+      console.log(result);
+      return res.status(400).send({
+        error_code: "DOUBLE_REPORT",
+        error_description: "Leitura do mês já realizada"
+        });
+    }else {
+      console.log(now+ "OLAAAA");
+    }
+  } catch (err) {
+    console.error("Error occurred:", err.message);
+    res.status(500).send({
+      message: err.message || "Some error occurred while processing the request."
     });
   }
 
-  try {
-    
-    const base64Data = req.body.img.replace(/^data:image\/[a-z]+;base64,/, '');
-    const imageBase64 = base64Data; 
+  
 
+  try {
+    // Configuração do modelo
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    // Codifica a imagem base64
+    const base64Image = req.body.image.replace(/^data:image\/[a-z]+;base64,/, '');
+
+    // Definir o caminho e nome do arquivo para salvar a imagem
+    const uploadsDir = path.join(__dirname, '../uploads');
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+
+    const imagePath = path.join(uploadsDir, `${Date.now()}.jpeg`);
+    const relativePath = path.relative(baseImagePath, imagePath);
+
+    const imageUrl = `${baseImageUrl}/${relativePath}`;
     
+    // Salva a imagem no servidor
+    fs.writeFileSync(imagePath, base64Image, 'base64');
+
+    // Configuração do prompt com imagem
     const promptConfig = [
-      { text: "Can you tell me about this image what's happening there?" },
+      { text: "what is the reading in the meter. I want just the complete number so I can convert it to integer" },
       {
         inlineData: {
-          mimeType: "image/jpeg",
-          data: imageBase64,
+          mimeType: "image/jpeg", // Usar o tipo MIME correto
+          data: base64Image,
         },
       },
     ];
 
-    
-    const result = await geminiModel.generateContent({
+    // Envio do prompt
+    const result = await model.generateContent({
       contents: [{ role: "user", parts: promptConfig }],
     });
-    const response = await result.response;
 
     
-    const apiData = response.text(); 
-
-    const apiResponseAsInteger = parseInt(apiData, 10); 
+    const responseText = await result.response.text();
 
     const leitura = {
-      img: req.body.img,
+      img: imagePath, 
       user_code: req.body.user_code,
       measure_date: req.body.measure_date,
       measure_type: req.body.measure_type,
-      leitura: apiResponseAsInteger
+      leitura: parseInt(responseText, 10)
     };
 
     const data = await Leitura.create(leitura);
 
-    res.send(data);
+    const responseData = {
+      image_url: imageUrl,
+      measure_value: data.leitura,
+      measure_uuid: data.id
+    }
+
+    data.img = imageUrl;
+
+    res.send(responseData);
   } catch (err) {
-    console.error("Error occurred: ", err.response ? err.response.data : err.message);
+    console.error("Error occurred:", err.message);
     res.status(500).send({
       message: err.message || "Some error occurred while processing the request."
     });
   }
 };
+
+
+
+exports.get = async (req, res) => {
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const prompt = "Write a story about a magic backpack.";
+
+  const result = await model.generateContent(prompt);
+  console.log(result.response.text());
+}
+
+
+
 
 
 

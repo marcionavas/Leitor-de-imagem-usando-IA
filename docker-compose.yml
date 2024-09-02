@@ -37,7 +37,7 @@ services:
     stdin_open: true
     tty: true
     volumes:
-      - ./bezkoder-app/src:/bezkoder-app/src    # Mapear o diretório corretamente
+      - ./bezkoder-app/app:/bezkoder-app/app    # Mapear o diretório corretamente
 
 volumes: 
   db:

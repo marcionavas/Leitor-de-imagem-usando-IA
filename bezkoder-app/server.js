@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const path = require('path');
 
 const app = express();
 
@@ -33,6 +34,9 @@ db.sequelize.sync()
 app.get("/", (req, res) => {
   res.json({ message: "Welcome to bezkoder application." });
 });
+
+//route to acess static resources
+app.use('/uploads', express.static(path.join(__dirname, 'app/uploads')));
 
 require("./app/routes/leitura.routes")(app);
 
