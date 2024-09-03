@@ -9,6 +9,9 @@ module.exports = app => {
     //Confirm a reading
     router.patch("/", leitura.patch);
 
+    //Get all reading with or withour filter
+    router.get('/:customer_code/list', leitura.getLeituras);
+
     //router.get("/test", leitura.get);
   
    

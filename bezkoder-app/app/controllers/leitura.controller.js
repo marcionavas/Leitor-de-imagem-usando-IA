@@ -101,8 +101,7 @@ exports.create = async (req, res) => {
       user_code: req.body.user_code,
       measure_date: req.body.measure_date,
       measure_type: req.body.measure_type,
-      leitura: parseInt(responseText, 10),
-      measure_confirmed: false
+      leitura: parseInt(responseText, 10)
     };
 
     const data = await Leitura.create(leitura);
@@ -174,6 +173,51 @@ exports.patch = async (req, res) => {
     });
   }
 }
+
+// Função para obter leituras
+exports.getLeituras = async (req, res) => {
+  try {
+    
+    const customerCode = req.params.customer_code;
+    const measureType = req.query.measure_type; // Filtro opcional
+
+    if(measureType && (measureType != 'WATER' && measureType != "GAS")){
+      return res.status(400).json({
+        error_code: "INVALID_TYPE",
+        error_description: "Tipo de medição não permitida"
+        });
+    } 
+    
+    
+    
+    const whereClause = {
+      user_code: customerCode
+    };
+    
+    if (measureType) {
+      whereClause.measure_type = measureType; 
+    }
+
+    
+    const leituras = await Leitura.findAll({
+      attributes: { exclude: ['createdAt', 'updatedAt'] },
+      where: whereClause
+    }); 
+
+    if (leituras.length === 0) {
+      return res.status(404).json({
+        error_code: "MEASURES_NOT_FOUND",
+        error_description: "Nenhuma leitura encontrada"
+        });
+    }
+   
+    // Retornar resposta
+    res.status(200).json(leituras);
+  } catch (error) {
+    console.error('Erro ao buscar leituras:', error);
+    res.status(500).json({ message: 'Erro interno do servidor' });
+  }
+};
 
 
 

@@ -17,7 +17,6 @@ module.exports = (sequelize, Sequelize) => {
         user_code: {
           type: Sequelize.STRING,
           allowNull: false,
-          unique: true,
         },
         measure_date: {
           type: Sequelize.DATE,
