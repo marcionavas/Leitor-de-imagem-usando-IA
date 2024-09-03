@@ -23,6 +23,10 @@ module.exports = (sequelize, Sequelize) => {
           type: Sequelize.DATE,
           allowNull: false,
         },
+        measure_confirmed: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: false
+        },
         measure_type: {
           type: Sequelize.STRING,
           allowNull: false,

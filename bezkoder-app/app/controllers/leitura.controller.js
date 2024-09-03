@@ -101,7 +101,8 @@ exports.create = async (req, res) => {
       user_code: req.body.user_code,
       measure_date: req.body.measure_date,
       measure_type: req.body.measure_type,
-      leitura: parseInt(responseText, 10)
+      leitura: parseInt(responseText, 10),
+      measure_confirmed: false
     };
 
     const data = await Leitura.create(leitura);
@@ -148,9 +149,18 @@ exports.patch = async (req, res) => {
       });
     }
 
+    if(result.measure_confirmed){
+      return res.status(409).send({
+        error_code: "CONFIRMATION_DUPLICATE",
+        error_description: "Leitura já confirmada"
+        });
+    }
+
     // Atualiza o campo se o valor for diferente
     if (result.leitura !== req.body.confirmed_value) {
-      await result.update({ leitura: req.body.confirmed_value });
+      await result.update({ leitura: req.body.confirmed_value, measure_confirmed: true });
+    } else {
+      await result.update({ measure_confirmed: true });
     }
 
     return res.status(200).send({
@@ -164,6 +174,7 @@ exports.patch = async (req, res) => {
     });
   }
 }
+
 
 
 
