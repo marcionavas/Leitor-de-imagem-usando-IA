@@ -24,9 +24,10 @@ exports.create = async (req, res) => {
   //Verfiicar se já existe algum registro do mesmo tipo no mês vigente
   try {
     // Obtém o mês e o ano atuais
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth() + 1; // getMonth() retorna o mês de 0 (Janeiro) a 11 (Dezembro)
+    //const now = new Date();
+    const leituraDAte = new Date(req.body.measure_date);
+    const currentYear = leituraDAte.getFullYear();
+    const currentMonth = leituraDAte.getMonth() + 1; // getMonth() retorna o mês de 0 (Janeiro) a 11 (Dezembro)
 
     // Consulta o banco de dados para verificar se há registros no mês atual
     const result = await Leitura.findOne({
@@ -186,9 +187,7 @@ exports.getLeituras = async (req, res) => {
         error_code: "INVALID_TYPE",
         error_description: "Tipo de medição não permitida"
         });
-    } 
-    
-    
+    }    
     
     const whereClause = {
       user_code: customerCode
@@ -197,7 +196,6 @@ exports.getLeituras = async (req, res) => {
     if (measureType) {
       whereClause.measure_type = measureType; 
     }
-
     
     const leituras = await Leitura.findAll({
       attributes: { exclude: ['createdAt', 'updatedAt'] },
@@ -218,13 +216,3 @@ exports.getLeituras = async (req, res) => {
     res.status(500).json({ message: 'Erro interno do servidor' });
   }
 };
-
-
-
-
-
-
-
-
-  
-  
